@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laju Lariku Laju Hitungku</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0; width:100vw; height:100vh; overflow:hidden;
+    font-family:"Trebuchet MS",Arial,sans-serif;
+    background:
+      radial-gradient(circle at 15% 16%,#ffffffaa 0 3%,transparent 4%),
+      linear-gradient(180deg,#69d9ff 0%,#dff9ff 52%,#9be27d 53%,#54b95b 100%);
+    color:#17324d;
+  }
+  .game{
+    width:100vw;height:100vh;padding:1vh 1.5vw;
+    display:flex;flex-direction:column;gap:.8vh;
+  }
+  header{
+    display:flex;align-items:center;justify-content:center;
+    position:relative;flex:0 0 12vh;
+  }
+  h1{
+    margin:0;text-align:center;font-size:clamp(34px,5vw,76px);
+    color:#ff5270;text-shadow:4px 4px 0 #fff,0 7px 0 #e8a72c;
+    letter-spacing:2px;line-height:1;
+  }
+  .top-info{
+    position:absolute;right:0;top:1vh;background:#fff;
+    padding:10px 16px;border-radius:20px;font-weight:800;
+    box-shadow:0 5px 12px #4b9a8b55;font-size:clamp(13px,1.3vw,22px);
+  }
+  .arena{
+    flex:1;min-height:0;display:grid;grid-template-columns:1fr 1.35fr 1fr;
+    gap:1vw;align-items:stretch;
+  }
+  .player{
+    background:#ffffffed;border:5px solid #fff;border-radius:32px;
+    padding:1vh 1vw;box-shadow:0 10px 24px #326f7a55;
+    display:flex;flex-direction:column;min-width:0;
+  }
+  .player.p1{border-color:#ffca3a}.player.p2{border-color:#6ecbff}
+  .player h2{margin:0;text-align:center;font-size:clamp(25px,2.5vw,42px);padding:.3vh 0}
+  .avatar{font-size:clamp(55px,7vw,105px);text-align:center;line-height:1}
+  .score{font-size:clamp(28px,3vw,48px);font-weight:900;text-align:center;margin:.3vh 0}
+  .track{
+    flex:1;position:relative;margin:.7vh 0;border-radius:26px;
+    background:
+      repeating-linear-gradient(0deg,#b8ec9b 0 34px,#91d875 34px 68px);
+    overflow:hidden;border:5px solid #fff;min-height:120px;
+    box-shadow:inset 0 0 20px #328e3b33;
+  }
+  .finish{position:absolute;right:4%;top:0;bottom:0;width:14px;background:repeating-linear-gradient(45deg,#fff 0 10px,#333 10px 20px)}
+  .rabbit{position:absolute;left:5%;bottom:4%;font-size:clamp(58px,6.5vw,100px);transition:left .55s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 5px 2px #0002)}
+  .center{
+    background:#fffef4f5;border:6px solid #ffcf3f;border-radius:34px;
+    box-shadow:0 10px 25px #326f7a55;padding:1vh 1.2vw;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-width:0;
+  }
+  .round{font-weight:900;color:#7a5c00;font-size:clamp(18px,1.7vw,28px);margin-bottom:.5vh}
+  .question{
+    width:100%;background:#fff;border:5px solid #ff9f1c;border-radius:28px;
+    text-align:center;padding:1.4vh .8vw;font-size:clamp(50px,6vw,96px);
+    font-weight:900;color:#28527a;box-shadow:inset 0 -8px 0 #ffe6a7;
+  }
+  .hint{font-size:clamp(17px,1.7vw,27px);font-weight:900;margin:.6vh 0;color:#537080}
+  .answers{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  button{
+    border:0;border-radius:22px;padding:1.25vh .5vw;font-size:clamp(27px,2.8vw,46px);
+    font-weight:900;cursor:pointer;color:#17324d;background:#fff;
+    box-shadow:0 6px 0 #b7c9d3;transition:.12s;
+  }
+  button:hover{transform:translateY(-2px)}
+  button:active{transform:translateY(3px);box-shadow:0 2px 0 #b7c9d3}
+  .a{background:#ffd166}.b{background:#8bd3ff}.c{background:#b9f18c}.d{background:#ff9db0}
+  .status{
+    min-height:4vh;text-align:center;font-size:clamp(18px,1.9vw,30px);font-weight:900;
+    color:#e85d04;margin-top:.5vh;
+  }
+  .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:.8vh}
+  .controls button{font-size:clamp(13px,1.1vw,19px);padding:7px 14px;background:#fff}
+  .modal{
+    position:fixed;inset:0;background:#17324dbb;display:none;align-items:center;justify-content:center;z-index:20;
+  }
+  .modal.show{display:flex}
+  .card{
+    width:min(760px,88vw);background:#fff;border-radius:35px;padding:4vh 4vw;
+    text-align:center;box-shadow:0 15px 45px #0005;border:8px solid #ffdf57;
+  }
+  .card h3{font-size:clamp(30px,4vw,60px);margin:0 0 1vh;color:#ff5b6e}
+  .winner{font-size:clamp(22px,2.5vw,38px);font-weight:900}
+  .start{
+    background:#ffca3a;color:#5a4100;font-size:clamp(20px,2vw,32px);
+    padding:1.5vh 2vw;margin-top:2vh;box-shadow:0 7px 0 #d59b1a;
+  }
+  .cloud{position:fixed;font-size:clamp(35px,5vw,75px);opacity:.75;z-index:-1}
+  .c1{left:2%;top:12%}.c2{right:4%;top:18%}.c3{left:45%;top:8%}
+
+
+  .race-track{
+    position:relative;flex:0 0 24vh;min-height:170px;
+    background:linear-gradient(#8fe7ff 0 35%,#a7e47f 36% 100%);
+    border:6px solid #fff;border-radius:32px;overflow:hidden;
+    box-shadow:0 10px 25px #326f7a55;
+    padding:3.2vh 1.2vw 1.5vh;
+  }
+  .race-title{
+    position:absolute;top:.6vh;left:50%;transform:translateX(-50%);
+    background:#fff;border:4px solid #ffcf3f;border-radius:20px;
+    padding:3px 18px;font-size:clamp(17px,1.6vw,27px);font-weight:900;
+    color:#e85d04;z-index:5;white-space:nowrap;
+  }
+  .race-line{
+    position:relative;height:8vh;min-height:52px;display:flex;align-items:center;
+  }
+  .lane-label{
+    position:absolute;left:1.5%;z-index:3;background:#ffffffdd;
+    border-radius:14px;padding:4px 10px;font-size:clamp(12px,1.2vw,19px);
+    font-weight:900;
+  }
+  .start-flag{
+    position:absolute;left:9%;z-index:3;font-size:clamp(25px,2.5vw,40px);
+  }
+  .lane-road{
+    position:absolute;left:7%;right:5%;height:45px;border-radius:22px;
+    background:repeating-linear-gradient(90deg,#d7e5df 0 45px,#b8c9c2 45px 90px);
+    border:4px solid #fff;box-shadow:inset 0 3px 5px #0002;
+  }
+  .lane-road:after{
+    content:"";position:absolute;left:0;right:0;top:50%;
+    border-top:4px dashed #fff;
+  }
+  .race-rabbit{
+    position:absolute;left:11%;z-index:4;
+    font-size:clamp(42px,4.5vw,72px);transition:left .6s cubic-bezier(.2,.8,.2,1);
+    filter:drop-shadow(0 5px 2px #0003);
+  }
+  .rabbit-one{top:0}.rabbit-two{top:0}
+  .finish-gate{
+    position:absolute;right:1.8%;top:17%;bottom:4%;
+    width:7%;min-width:70px;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;background:repeating-linear-gradient(
+      90deg,#fff 0 15px,#333 15px 30px);
+    border:4px solid #fff;border-radius:12px;z-index:2;
+    font-weight:900;font-size:clamp(12px,1.2vw,18px);color:#222;
+  }
+  .finish-gate div{font-size:clamp(24px,2.5vw,42px);line-height:.8}
+  .finish-gate span{background:#fff;padding:2px 5px;border-radius:8px;margin-top:3px}
+  .cloud-race{position:absolute;font-size:clamp(25px,3vw,45px);opacity:.7}
+  .cr1{left:28%;top:1%}.cr2{right:20%;top:2%}
+
+  .battle{
+    flex:1;min-height:0;display:grid;grid-template-columns:1fr 110px 1fr;
+    gap:1vw;align-items:stretch;
+  }
+  .battle-player{
+    border-radius:34px;padding:1.2vh 1.2vw;display:flex;flex-direction:column;
+    min-width:0;box-shadow:0 10px 25px #326f7a55;border:6px solid #fff;
+  }
+  .left-player{background:linear-gradient(180deg,#fff9d9,#fff);border-color:#ffca3a}
+  .right-player{background:linear-gradient(180deg,#e5f8ff,#fff);border-color:#6ecbff}
+  .player-title{
+    text-align:center;font-weight:900;font-size:clamp(24px,2.5vw,42px);
+    padding:.5vh;border-radius:18px;background:#ffffffcc;
+  }
+  .player-avatar{text-align:center;font-size:clamp(55px,6vw,100px);line-height:1}
+  .player-score{
+    text-align:center;font-size:clamp(25px,2.5vw,43px);font-weight:900;
+    color:#28527a;margin:.2vh 0;
+  }
+  .battle-question{
+    background:#fff;border:5px solid #ff9f1c;border-radius:25px;
+    text-align:center;padding:1vh;font-size:clamp(42px,4.8vw,76px);
+    font-weight:900;color:#28527a;box-shadow:inset 0 -7px 0 #ffe6a7;
+  }
+  .battle-turn{
+    text-align:center;font-weight:900;font-size:clamp(15px,1.5vw,24px);
+    color:#e85d04;min-height:3.5vh;padding:.4vh;
+  }
+  .battle-answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:.5vh 0}
+  .battle-answers button{
+    font-size:clamp(24px,2.3vw,38px);padding:1vh .3vw;border-radius:20px
+  }
+  .mini-track{
+    flex:1;min-height:95px;position:relative;border:4px solid white;
+    border-radius:24px;overflow:hidden;
+    background:repeating-linear-gradient(0deg,#b8ec9b 0 30px,#91d875 30px 60px);
+  }
+  .mini-track .rabbit{font-size:clamp(50px,5vw,80px)}
+  .battle-middle{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:1.2vh;
+  }
+  .vs{
+    width:clamp(75px,6vw,110px);height:clamp(75px,6vw,110px);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:#ff5b6e;color:white;font-size:clamp(28px,3vw,48px);
+    font-weight:900;border:6px solid #fff;box-shadow:0 7px 0 #c93b4e;
+  }
+  .round-badge{
+    background:#fff;border:4px solid #ffcf3f;border-radius:20px;
+    padding:8px 12px;font-weight:900;font-size:clamp(14px,1.3vw,21px);
+    text-align:center;white-space:nowrap;
+  }
+  .middle-message{
+    background:#fff;border-radius:18px;padding:8px;text-align:center;
+    font-weight:900;font-size:clamp(12px,1.15vw,18px);width:100%;
+  }
+
+  @media(max-width:800px){
+    body{overflow:auto}.game{height:auto;min-height:100vh}
+  
+  .race-track{
+    position:relative;flex:0 0 24vh;min-height:170px;
+    background:linear-gradient(#8fe7ff 0 35%,#a7e47f 36% 100%);
+    border:6px solid #fff;border-radius:32px;overflow:hidden;
+    box-shadow:0 10px 25px #326f7a55;
+    padding:3.2vh 1.2vw 1.5vh;
+  }
+  .race-title{
+    position:absolute;top:.6vh;left:50%;transform:translateX(-50%);
+    background:#fff;border:4px solid #ffcf3f;border-radius:20px;
+    padding:3px 18px;font-size:clamp(17px,1.6vw,27px);font-weight:900;
+    color:#e85d04;z-index:5;white-space:nowrap;
+  }
+  .race-line{
+    position:relative;height:8vh;min-height:52px;display:flex;align-items:center;
+  }
+  .lane-label{
+    position:absolute;left:1.5%;z-index:3;background:#ffffffdd;
+    border-radius:14px;padding:4px 10px;font-size:clamp(12px,1.2vw,19px);
+    font-weight:900;
+  }
+  .start-flag{
+    position:absolute;left:9%;z-index:3;font-size:clamp(25px,2.5vw,40px);
+  }
+  .lane-road{
+    position:absolute;left:7%;right:5%;height:45px;border-radius:22px;
+    background:repeating-linear-gradient(90deg,#d7e5df 0 45px,#b8c9c2 45px 90px);
+    border:4px solid #fff;box-shadow:inset 0 3px 5px #0002;
+  }
+  .lane-road:after{
+    content:"";position:absolute;left:0;right:0;top:50%;
+    border-top:4px dashed #fff;
+  }
+  .race-rabbit{
+    position:absolute;left:11%;z-index:4;
+    font-size:clamp(42px,4.5vw,72px);transition:left .6s cubic-bezier(.2,.8,.2,1);
+    filter:drop-shadow(0 5px 2px #0003);
+  }
+  .rabbit-one{top:0}.rabbit-two{top:0}
+  .finish-gate{
+    position:absolute;right:1.8%;top:17%;bottom:4%;
+    width:7%;min-width:70px;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;background:repeating-linear-gradient(
+      90deg,#fff 0 15px,#333 15px 30px);
+    border:4px solid #fff;border-radius:12px;z-index:2;
+    font-weight:900;font-size:clamp(12px,1.2vw,18px);color:#222;
+  }
+  .finish-gate div{font-size:clamp(24px,2.5vw,42px);line-height:.8}
+  .finish-gate span{background:#fff;padding:2px 5px;border-radius:8px;margin-top:3px}
+  .cloud-race{position:absolute;font-size:clamp(25px,3vw,45px);opacity:.7}
+  .cr1{left:28%;top:1%}.cr2{right:20%;top:2%}
+
+  .battle{grid-template-columns:1fr;gap:10px}
+    .battle-middle{order:-1;flex-direction:row;flex-wrap:wrap}
+    .mini-track{min-height:90px}
+  }
+.tv-badge{
+    position:absolute;left:0;top:1vh;background:#ffffffdd;
+    padding:8px 14px;border-radius:18px;font-weight:900;
+    font-size:clamp(12px,1.1vw,18px);box-shadow:0 4px 10px #326f7a33;
+    color:#28627d;
+}
+@media (min-width:1400px){
+  .game{padding-left:2vw;padding-right:2vw}
+}
+</style>
+</head>
+<body>
+<div class="cloud c1">☁️</div><div class="cloud c2">☁️</div><div class="cloud c3">☁️</div>
+<div class="game">
+  <header>
+    <div class="tv-badge">📺 MODE TV • 16:9</div>
+    <h1>🐰 LAJU LARIKU LAJU HITUNGKU 🐰</h1>
+    <div class="top-info">⏱️ Soal <span id="round">1</span>/<span id="total">10</span></div>
+  </header>
+
+  <section class="race-track">
+    <div class="race-title">🏁 BALAP KELINCI 🏁</div>
+    <div class="race-line lane-one">
+      <div class="start-flag">🚩</div>
+      <div class="lane-label">🌟 SISWA 1</div>
+      <div class="lane-road"></div>
+      <div id="rabbit1" class="race-rabbit rabbit-one">🐇</div>
+    </div>
+    <div class="race-line lane-two">
+      <div class="start-flag">🚩</div>
+      <div class="lane-label">🚀 SISWA 2</div>
+      <div class="lane-road"></div>
+      <div id="rabbit2" class="race-rabbit rabbit-two">🐇</div>
+    </div>
+    <div class="finish-gate">
+      <div>🏁</div>
+      <span>FINISH</span>
+      <div>🏁</div>
+    </div>
+    <div class="cloud-race cr1">☁️</div>
+    <div class="cloud-race cr2">☁️</div>
+  </section>
+
+  <main class="battle">
+    <section class="battle-player left-player">
+      <div class="player-title">🌟 SISWA 1</div>
+      <div class="player-avatar">🐰</div>
+      <div class="player-score">POIN <span id="score1">0</span></div>
+      <div class="battle-question" id="question1">3 + 4 = ?</div>
+      <div class="battle-turn" id="turn1">GILIRANMU!</div>
+      <div class="battle-answers">
+        <button class="a" data-player="0" data-index="0">A</button>
+        <button class="b" data-player="0" data-index="1">B</button>
+        <button class="c" data-player="0" data-index="2">C</button>
+        <button class="d" data-player="0" data-index="3">D</button>
+      </div>
+
+    </section>
+
+    <section class="battle-middle">
+      <div class="vs">VS</div>
+      <div class="round-badge">SOAL <span id="round">1</span>/<span id="total">10</span></div>
+      <div class="middle-message" id="status">Siapakah yang paling cepat? 🚀</div>
+      <div class="controls">
+        <button id="newGame">🔄 Baru</button>
+        <button id="soundBtn">🔊 Suara</button>
+        <button id="fsBtn">⛶ TV</button>
+      </div>
+    </section>
+
+    <section class="battle-player right-player">
+      <div class="player-title">🚀 SISWA 2</div>
+      <div class="player-avatar">🐰</div>
+      <div class="player-score">POIN <span id="score2">0</span></div>
+      <div class="battle-question" id="question2">3 + 4 = ?</div>
+      <div class="battle-turn" id="turn2">TUNGGU...</div>
+      <div class="battle-answers">
+        <button class="a" data-player="1" data-index="0">A</button>
+        <button class="b" data-player="1" data-index="1">B</button>
+        <button class="c" data-player="1" data-index="2">C</button>
+        <button class="d" data-player="1" data-index="3">D</button>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<div id="modal" class="modal">
+  <div class="card">
+    <h3>🎉 Balapan Selesai! 🎉</h3>
+    <div id="winner" class="winner"></div>
+    <button class="start" id="again">🏁 Main Lagi</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const TOTAL=10;
+  let round=1, turn=0, score=[0,0], pos=[0,0], correct=0, choices=[];
+  let soundOn=true, audioCtx=null;
+
+  const $=id=>document.getElementById(id);
+  const qEl=$("question"), hint=$("hint"), status=$("status"), modal=$("modal");
+
+  function ensureAudio(){
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+  }
+  function tone(freq,dur,type="sine",vol=.06,delay=0){
+    if(!soundOn)return;
+    ensureAudio();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime+delay);
+    g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+delay+.02);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+dur+.03);
+  }
+  function correctSound(){ [523,659,784,1047].forEach((f,i)=>tone(f,.16,"sine",.08,i*.07)); }
+  function wrongSound(){ tone(220,.22,"sawtooth",.055);tone(165,.3,"sawtooth",.045,.18); }
+  function winSound(){ [523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,"triangle",.09,i*.09)); }
+
+  function makeQuestion(){
+    let a=Math.floor(Math.random()*10)+1,b=Math.floor(Math.random()*10)+1;
+    const add=Math.random()<.55;
+    if(!add && b>a)[a,b]=[b,a];
+    correct=add?a+b:a-b;
+    const op=add?"+":"−";
+    choices=[correct];
+    while(choices.length<4){
+      const delta=Math.floor(Math.random()*5)+1;
+      const x=correct+(Math.random()<.5?-delta:delta);
+      if(x>=0 && !choices.includes(x))choices.push(x);
+    }
+    choices.sort(()=>Math.random()-.5);
+
+    $("question1").textContent=`${a} ${op} ${b} = ?`;
+    $("question2").textContent=`${a} ${op} ${b} = ?`;
+
+    document.querySelectorAll(".battle-answers button").forEach(btn=>{
+      const i=Number(btn.dataset.index);
+      btn.textContent=["A","B","C","D"][i]+"  "+choices[i];
+      btn.dataset.value=choices[i];
+      btn.disabled=false;
+    });
+
+    $("turn1").textContent=turn===0?"⚡ GILIRAN SISWA 1":"⏳ TUNGGU...";
+    $("turn2").textContent=turn===1?"⚡ GILIRAN SISWA 2":"⏳ TUNGGU...";
+    $("turn1").style.color=turn===0?"#e85d04":"#789";
+    $("turn2").style.color=turn===1?"#e85d04":"#789";
+    status.textContent=`Siswa ${turn+1}, pilih jawabanmu! 🥕`;
+  }
+
+  function update(){
+    $("round").textContent=round; $("total").textContent=TOTAL;
+    $("score1").textContent=score[0]; $("score2").textContent=score[1];
+    $("rabbit1").style.left=(11 + Math.min(78,pos[0]))+"%";
+    $("rabbit2").style.left=(11 + Math.min(78,pos[1]))+"%";
+  }
+
+  function answer(value){
+    document.querySelectorAll(`.battle-answers button[data-player="${turn}"]`).forEach(b=>b.disabled=true);
+    const ok=Number(value)===correct;
+    if(ok){
+      score[turn]+=10; pos[turn]+=10;
+      status.textContent=`🎉 Hebat! Siswa ${turn+1} benar! +10 poin`;
+      correctSound();
+    }else{
+      status.textContent=`😊 Belum tepat. Jawaban yang benar: ${correct}`;
+      wrongSound();
+    }
+    update();
+    setTimeout(()=>{
+      if(round>=TOTAL){finish();return;}
+      round++; turn=1-turn; makeQuestion(); update();
+    },1200);
+  }
+
+  function finish(){
+    winSound();
+    const s1=score[0],s2=score[1];
+    $("winner").innerHTML = s1===s2
+      ? `🤝 Skor seri!<br><strong>Siswa 1: ${s1} poin &nbsp;•&nbsp; Siswa 2: ${s2} poin</strong>`
+      : `🏆 <strong>Siswa ${s1>s2?1:2}</strong> menang!<br><strong>Siswa 1: ${s1} poin &nbsp;•&nbsp; Siswa 2: ${s2} poin</strong>`;
+    modal.classList.add("show");
+  }
+
+  function newGame(){
+    round=1;turn=0;score=[0,0];pos=[0,0];
+    modal.classList.remove("show"); makeQuestion();update();
+  }
+
+  document.querySelectorAll(".battle-answers button").forEach(b=>b.addEventListener("click",()=>{
+    ensureAudio();
+    const player=Number(b.dataset.player);
+    if(player!==turn){
+      status.textContent=`⏳ Sekarang giliran Siswa ${turn+1}!`;
+      wrongSound();
+      return;
+    }
+    answer(b.dataset.value);
+  }));
+  $("newGame").onclick=newGame;
+  $("again").onclick=newGame;
+  $("soundBtn").onclick=()=>{
+    soundOn=!soundOn; $("soundBtn").textContent=soundOn?"🔊 Suara: ON":"🔇 Suara: OFF";
+    if(soundOn){ensureAudio();tone(660,.12);}
+  };
+  $("fsBtn").onclick=async()=>{
+    try{
+      if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    }catch(e){}
+  };
+  document.addEventListener("keydown",e=>{
+    if(e.key>="1"&&e.key<="4"){
+      const btn=document.querySelectorAll(`.battle-answers button[data-player="${turn}"]`)[Number(e.key)-1];
+      if(btn&&!btn.disabled) answer(btn.dataset.value);
+    }
+    if(e.key.toLowerCase()==="r")newGame();
+  });
+  makeQuestion();update();
+})();
+</script>
+</body>
+</html>
